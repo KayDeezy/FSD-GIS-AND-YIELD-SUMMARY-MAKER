@@ -1,0 +1,6 @@
+{
+  "name": "Timber Tally & Field Tree Data Collector",
+  "description": "Professional field tree data collection, species classification, sequence correction, offline sync queue, and automated timber tally ledger generation.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
