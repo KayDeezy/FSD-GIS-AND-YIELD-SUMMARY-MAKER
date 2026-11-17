@@ -119,6 +119,17 @@ export function saveSyncLogs(logs: SyncLogItem[]): void {
   }
 }
 
+export function clearStoredSurveyData(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY_ENTRIES);
+    localStorage.removeItem(STORAGE_KEY_CLEARED);
+    localStorage.removeItem(STORAGE_KEY_META);
+    localStorage.removeItem(STORAGE_KEY_SYNC_LOGS);
+  } catch (err) {
+    console.error('Failed to clear stored survey data:', err);
+  }
+}
+
 // Simulated Cloud Sync
 export async function syncWithCloud(entries: TreeEntry[]): Promise<{ updatedEntries: TreeEntry[]; logItem: SyncLogItem }> {
   // Simulate network delay

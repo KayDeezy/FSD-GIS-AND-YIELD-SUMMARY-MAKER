@@ -7,36 +7,24 @@ import { TallyLedger } from './components/TallyLedger';
 import { DataCorrectionAudit } from './components/DataCorrectionAudit';
 import { GisStandMap } from './components/GisStandMap';
 import { TreeEntry, SurveyMetadata, AuditReport } from './types';
-import { loadEntries, saveEntries, loadMetadata, saveMetadata, loadClearedEntries, saveClearedEntries } from './utils/storage';
+import { clearStoredSurveyData } from './utils/storage';
 import { auditTreeEntries, calculateDbh } from './utils/tally';
 import forestBg from './assets/images/forest_background_timber_1786100538487.jpg';
 
 export default function App() {
   const [entries, setEntries] = useState<TreeEntry[]>([]);
   const [clearedHistory, setClearedHistory] = useState<TreeEntry[]>([]);
-  const [meta, setMeta] = useState<SurveyMetadata>(DEFAULT_META);
+  const [meta, setMeta] = useState<SurveyMetadata>(() => ({
+    ...DEFAULT_META,
+    date: new Date().toISOString().split('T')[0]
+  }));
   const [activeTab, setActiveTab] = useState<'logger' | 'audit' | 'ledger' | 'map'>('logger');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Load initial data
+  // Clear any previously stored survey entries, backups, and metadata upon visiting the app
   useEffect(() => {
-    const savedEntries = loadEntries();
-    const savedMeta = loadMetadata();
-    const savedCleared = loadClearedEntries();
-
-    setEntries(savedEntries);
-    setMeta(savedMeta);
-    setClearedHistory(savedCleared);
+    clearStoredSurveyData();
   }, []);
-
-  // Save entries state changes automatically to persistent storage
-  useEffect(() => {
-    saveEntries(entries);
-  }, [entries]);
-
-  useEffect(() => {
-    saveMetadata(meta);
-  }, [meta]);
 
   const audit: AuditReport = auditTreeEntries(entries);
 
@@ -111,14 +99,12 @@ export default function App() {
   const handleClearAll = () => {
     if (entries.length === 0) return;
     const count = entries.length;
-    // Store current snapshot before clearing to allow complete revert
+    // Store current snapshot before clearing to allow complete revert in current session
     const backup = [...entries];
     setClearedHistory(backup);
-    saveClearedEntries(backup);
 
     // Clear entries
     setEntries([]);
-    saveEntries([]);
 
     setToastMessage(`Cleared all ${count} tree ${count === 1 ? 'entry' : 'entries'}. You can revert this action using the button below.`);
   };
@@ -129,10 +115,7 @@ export default function App() {
     const count = restored.length;
 
     setEntries(restored);
-    saveEntries(restored);
-
     setClearedHistory([]);
-    saveClearedEntries([]);
 
     setToastMessage(`Reverted clear action! Successfully restored ${count} tree ${count === 1 ? 'entry' : 'entries'}.`);
     setTimeout(() => setToastMessage(null), 5000);
@@ -194,7 +177,6 @@ export default function App() {
               <button
                 onClick={() => {
                   setClearedHistory([]);
-                  saveClearedEntries([]);
                   setToastMessage(null);
                 }}
                 className="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-stone-800 text-xs transition-colors"
